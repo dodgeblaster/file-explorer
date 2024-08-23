@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File System Explorer</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+  <div id="file-system-container" class="p-4"></div>
+
+  <script type="module">
+   
+    const fileSystemContainer = document.getElementById('file-system-container');
+
+    const icons = {
+        folder: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 lucide lucide-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>',
+        file: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 lucide lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>'
+    }
+
+    async function openFile(path) {
+    try {
+       
+      
+        const response = await fetch('/api/open', {
+            method: 'POST',
+            body: JSON.stringify({ path }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+    debugger
+        return false
+    } catch (error) {
+        console.error('Error:', error);
+        resultDiv.textContent = 'Error calling Bedrock';
+    }
+}
+
+    function renderFileSystem(data) {
+      fileSystemContainer.innerHTML = '';
+
+      function renderNode(node, parentElement) {
+        const nodeElement = document.createElement('div');
+        nodeElement.classList.add( 'rounded', 'p-2', 'cursor-pointer',);
+
+
+        const titleElement = document.createElement('div')
+        titleElement.classList.add('flex', 'items-center')
+
+        const iconElement = document.createElement('span');
+        iconElement.classList.add('mr-2', 'inline-block');
+        if (node.type === 'directory') {
+          iconElement.innerHTML = icons.folder;
+        } else {
+          iconElement.innerHTML = icons.file;
+        }
+
+        const nameElement = document.createElement('span');
+        nameElement.textContent = node.name + (node.type === 'directory' ? ' /': '');
+
+        titleElement.appendChild(iconElement);
+        titleElement.appendChild(nameElement);
+
+        nodeElement.appendChild(titleElement);
+
+        parentElement.appendChild(nodeElement);
+
+        if (node.type === 'directory') {
+          titleElement.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleDirectory(nodeElement, node.children);
+          });
+        }
+
+        if (node.type === 'file') {
+            titleElement.addEventListener('click', (event) => {
+            event.stopPropagation();
+
+            openFile(node.path)
+            //toggleDirectory(nodeElement, node.children);
+          });
+        }
+
+        if (node.children) {
+          const childrenContainer = document.createElement('div');
+          childrenContainer.classList.add('pl-4', 'hidden', 'mt-2', 'children');
+          node.children.forEach((child) => renderNode(child, childrenContainer));
+          nodeElement.appendChild(childrenContainer);
+        }
+      }
+
+      function toggleDirectory(element, children) {
+        const childrenContainerList = element.querySelectorAll('div');
+        const childrenContainer = Array.from(childrenContainerList)[1]
+        if (childrenContainer.classList.contains('hidden')) {
+          childrenContainer.classList.remove('hidden');
+        } else {
+          childrenContainer.classList.add('hidden');
+        }
+      }
+
+      data.forEach((node) => renderNode(node, fileSystemContainer));
+    }
+
+    const data = [
+  {
+    "type": "directory",
+    "name": ".git",
+    "path": "/home/gary/Desktop/web/polar/.git",
+    "children": [
+      {
+        "type": "file",
+        "name": "HEAD",
+        "path": "/home/gary/Desktop/web/polar/.git/HEAD"
+      },
+      {
+        "type": "directory",
+        "name": "branches",
+        "path": "/home/gary/Desktop/web/polar/.git/branches",
+        "children": []
+      },
+      {
+        "type": "file",
+        "name": "config",
+        "path": "/home/gary/Desktop/web/polar/.git/config"
+      },
+      {
+        "type": "file",
+        "name": "description",
+        "path": "/home/gary/Desktop/web/polar/.git/description"
+      },
+      {
+        "type": "directory",
+        "name": "hooks",
+        "path": "/home/gary/Desktop/web/polar/.git/hooks",
+        "children": [
+          {
+            "type": "file",
+            "name": "applypatch-msg.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/applypatch-msg.sample"
+          },
+          {
+            "type": "file",
+            "name": "commit-msg.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/commit-msg.sample"
+          },
+          {
+            "type": "file",
+            "name": "fsmonitor-watchman.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/fsmonitor-watchman.sample"
+          },
+          {
+            "type": "file",
+            "name": "post-update.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/post-update.sample"
+          },
+          {
+            "type": "file",
+            "name": "pre-applypatch.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/pre-applypatch.sample"
+          },
+          {
+            "type": "file",
+            "name": "pre-commit.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/pre-commit.sample"
+          },
+          {
+            "type": "file",
+            "name": "pre-merge-commit.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/pre-merge-commit.sample"
+          },
+          {
+            "type": "file",
+            "name": "pre-push.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/pre-push.sample"
+          },
+          {
+            "type": "file",
+            "name": "pre-rebase.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/pre-rebase.sample"
+          },
+          {
+            "type": "file",
+            "name": "pre-receive.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/pre-receive.sample"
+          },
+          {
+            "type": "file",
+            "name": "prepare-commit-msg.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/prepare-commit-msg.sample"
+          },
+          {
+            "type": "file",
+            "name": "push-to-checkout.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/push-to-checkout.sample"
+          },
+          {
+            "type": "file",
+            "name": "sendemail-validate.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/sendemail-validate.sample"
+          },
+          {
+            "type": "file",
+            "name": "update.sample",
+            "path": "/home/gary/Desktop/web/polar/.git/hooks/update.sample"
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "index",
+        "path": "/home/gary/Desktop/web/polar/.git/index"
+      },
+      {
+        "type": "directory",
+        "name": "info",
+        "path": "/home/gary/Desktop/web/polar/.git/info",
+        "children": [
+          {
+            "type": "file",
+            "name": "exclude",
+            "path": "/home/gary/Desktop/web/polar/.git/info/exclude"
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "logs",
+        "path": "/home/gary/Desktop/web/polar/.git/logs",
+        "children": [
+          {
+            "type": "file",
+            "name": "HEAD",
+            "path": "/home/gary/Desktop/web/polar/.git/logs/HEAD"
+          },
+          {
+            "type": "directory",
+            "name": "refs",
+            "path": "/home/gary/Desktop/web/polar/.git/logs/refs",
+            "children": [
+              {
+                "type": "directory",
+                "name": "heads",
+                "path": "/home/gary/Desktop/web/polar/.git/logs/refs/heads",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "main",
+                    "path": "/home/gary/Desktop/web/polar/.git/logs/refs/heads/main"
+                  }
+                ]
+              },
+              {
+                "type": "directory",
+                "name": "remotes",
+                "path": "/home/gary/Desktop/web/polar/.git/logs/refs/remotes",
+                "children": [
+                  {
+                    "type": "directory",
+                    "name": "origin",
+                    "path": "/home/gary/Desktop/web/polar/.git/logs/refs/remotes/origin",
+                    "children": [
+                      {
+                        "type": "file",
+                        "name": "HEAD",
+                        "path": "/home/gary/Desktop/web/polar/.git/logs/refs/remotes/origin/HEAD"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "objects",
+        "path": "/home/gary/Desktop/web/polar/.git/objects",
+        "children": [
+          {
+            "type": "directory",
+            "name": "info",
+            "path": "/home/gary/Desktop/web/polar/.git/objects/info",
+            "children": []
+          },
+          {
+            "type": "directory",
+            "name": "pack",
+            "path": "/home/gary/Desktop/web/polar/.git/objects/pack",
+            "children": [
+              {
+                "type": "file",
+                "name": "pack-b56bdb49f592a70ad8ecc0883fb47d4a9356cc3e.idx",
+                "path": "/home/gary/Desktop/web/polar/.git/objects/pack/pack-b56bdb49f592a70ad8ecc0883fb47d4a9356cc3e.idx"
+              },
+              {
+                "type": "file",
+                "name": "pack-b56bdb49f592a70ad8ecc0883fb47d4a9356cc3e.pack",
+                "path": "/home/gary/Desktop/web/polar/.git/objects/pack/pack-b56bdb49f592a70ad8ecc0883fb47d4a9356cc3e.pack"
+              },
+              {
+                "type": "file",
+                "name": "pack-b56bdb49f592a70ad8ecc0883fb47d4a9356cc3e.rev",
+                "path": "/home/gary/Desktop/web/polar/.git/objects/pack/pack-b56bdb49f592a70ad8ecc0883fb47d4a9356cc3e.rev"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "packed-refs",
+        "path": "/home/gary/Desktop/web/polar/.git/packed-refs"
+      },
+      {
+        "type": "directory",
+        "name": "refs",
+        "path": "/home/gary/Desktop/web/polar/.git/refs",
+        "children": [
+          {
+            "type": "directory",
+            "name": "heads",
+            "path": "/home/gary/Desktop/web/polar/.git/refs/heads",
+            "children": [
+              {
+                "type": "file",
+                "name": "main",
+                "path": "/home/gary/Desktop/web/polar/.git/refs/heads/main"
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "remotes",
+            "path": "/home/gary/Desktop/web/polar/.git/refs/remotes",
+            "children": [
+              {
+                "type": "directory",
+                "name": "origin",
+                "path": "/home/gary/Desktop/web/polar/.git/refs/remotes/origin",
+                "children": [
+                  {
+                    "type": "file",
+                    "name": "HEAD",
+                    "path": "/home/gary/Desktop/web/polar/.git/refs/remotes/origin/HEAD"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "directory",
+            "name": "tags",
+            "path": "/home/gary/Desktop/web/polar/.git/refs/tags",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "file",
+    "name": ".gitignore",
+    "path": "/home/gary/Desktop/web/polar/.gitignore"
+  },
+  {
+    "type": "directory",
+    "name": "components",
+    "path": "/home/gary/Desktop/web/polar/components",
+    "children": [
+      {
+        "type": "directory",
+        "name": "button",
+        "path": "/home/gary/Desktop/web/polar/components/button",
+        "children": [
+          {
+            "type": "file",
+            "name": "component.js",
+            "path": "/home/gary/Desktop/web/polar/components/button/component.js"
+          },
+          {
+            "type": "file",
+            "name": "story.html",
+            "path": "/home/gary/Desktop/web/polar/components/button/story.html"
+          },
+          {
+            "type": "file",
+            "name": "test.html",
+            "path": "/home/gary/Desktop/web/polar/components/button/test.html"
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "canvas",
+        "path": "/home/gary/Desktop/web/polar/components/canvas",
+        "children": [
+          {
+            "type": "file",
+            "name": "component.js",
+            "path": "/home/gary/Desktop/web/polar/components/canvas/component.js"
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "chat",
+        "path": "/home/gary/Desktop/web/polar/components/chat",
+        "children": [
+          {
+            "type": "file",
+            "name": "component.js",
+            "path": "/home/gary/Desktop/web/polar/components/chat/component.js"
+          },
+          {
+            "type": "file",
+            "name": "story.html",
+            "path": "/home/gary/Desktop/web/polar/components/chat/story.html"
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "code",
+        "path": "/home/gary/Desktop/web/polar/components/code",
+        "children": [
+          {
+            "type": "file",
+            "name": "component.js",
+            "path": "/home/gary/Desktop/web/polar/components/code/component.js"
+          },
+          {
+            "type": "file",
+            "name": "index.html",
+            "path": "/home/gary/Desktop/web/polar/components/code/index.html"
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "input",
+        "path": "/home/gary/Desktop/web/polar/components/input",
+        "children": [
+          {
+            "type": "file",
+            "name": "component.js",
+            "path": "/home/gary/Desktop/web/polar/components/input/component.js"
+          },
+          {
+            "type": "file",
+            "name": "story.html",
+            "path": "/home/gary/Desktop/web/polar/components/input/story.html"
+          },
+          {
+            "type": "file",
+            "name": "test.html",
+            "path": "/home/gary/Desktop/web/polar/components/input/test.html"
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "readme.md",
+        "path": "/home/gary/Desktop/web/polar/components/readme.md"
+      }
+    ]
+  },
+  {
+    "type": "directory",
+    "name": "css",
+    "path": "/home/gary/Desktop/web/polar/css",
+    "children": [
+      {
+        "type": "file",
+        "name": "index.mjs",
+        "path": "/home/gary/Desktop/web/polar/css/index.mjs"
+      },
+      {
+        "type": "directory",
+        "name": "src",
+        "path": "/home/gary/Desktop/web/polar/css/src",
+        "children": [
+          {
+            "type": "file",
+            "name": "_colors.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/_colors.mjs"
+          },
+          {
+            "type": "file",
+            "name": "animation.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/animation.mjs"
+          },
+          {
+            "type": "file",
+            "name": "backgroundColor.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/backgroundColor.mjs"
+          },
+          {
+            "type": "file",
+            "name": "border.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/border.mjs"
+          },
+          {
+            "type": "file",
+            "name": "borderColor.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/borderColor.mjs"
+          },
+          {
+            "type": "file",
+            "name": "flex.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/flex.mjs"
+          },
+          {
+            "type": "file",
+            "name": "font.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/font.mjs"
+          },
+          {
+            "type": "file",
+            "name": "gradients.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/gradients.mjs"
+          },
+          {
+            "type": "file",
+            "name": "index.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/index.mjs"
+          },
+          {
+            "type": "file",
+            "name": "layout.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/layout.mjs"
+          },
+          {
+            "type": "file",
+            "name": "opacity.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/opacity.mjs"
+          },
+          {
+            "type": "file",
+            "name": "shadow.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/shadow.mjs"
+          },
+          {
+            "type": "file",
+            "name": "size.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/size.mjs"
+          },
+          {
+            "type": "file",
+            "name": "textColor.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/textColor.mjs"
+          },
+          {
+            "type": "file",
+            "name": "transform.mjs",
+            "path": "/home/gary/Desktop/web/polar/css/src/transform.mjs"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "file",
+    "name": "package-lock.json",
+    "path": "/home/gary/Desktop/web/polar/package-lock.json"
+  },
+  {
+    "type": "file",
+    "name": "package.json",
+    "path": "/home/gary/Desktop/web/polar/package.json"
+  },
+  {
+    "type": "file",
+    "name": "polar-store.js",
+    "path": "/home/gary/Desktop/web/polar/polar-store.js"
+  },
+  {
+    "type": "file",
+    "name": "polar-ui.js",
+    "path": "/home/gary/Desktop/web/polar/polar-ui.js"
+  },
+  {
+    "type": "file",
+    "name": "polar.css",
+    "path": "/home/gary/Desktop/web/polar/polar.css"
+  },
+  {
+    "type": "file",
+    "name": "readme.md",
+    "path": "/home/gary/Desktop/web/polar/readme.md"
+  },
+  {
+    "type": "directory",
+    "name": "store",
+    "path": "/home/gary/Desktop/web/polar/store",
+    "children": [
+      {
+        "type": "file",
+        "name": "index.mjs",
+        "path": "/home/gary/Desktop/web/polar/store/index.mjs"
+      },
+      {
+        "type": "directory",
+        "name": "src",
+        "path": "/home/gary/Desktop/web/polar/store/src",
+        "children": [
+          {
+            "type": "file",
+            "name": "add_action.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/src/add_action.mjs"
+          },
+          {
+            "type": "file",
+            "name": "add_computed.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/src/add_computed.mjs"
+          },
+          {
+            "type": "file",
+            "name": "add_lifecycle.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/src/add_lifecycle.mjs"
+          },
+          {
+            "type": "file",
+            "name": "add_listenKeys.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/src/add_listenKeys.mjs"
+          },
+          {
+            "type": "file",
+            "name": "atom.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/src/atom.mjs"
+          },
+          {
+            "type": "file",
+            "name": "util_listenerqueue.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/src/util_listenerqueue.mjs"
+          },
+          {
+            "type": "file",
+            "name": "util_path.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/src/util_path.mjs"
+          },
+          {
+            "type": "file",
+            "name": "util_task.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/src/util_task.mjs"
+          }
+        ]
+      },
+      {
+        "type": "directory",
+        "name": "tests",
+        "path": "/home/gary/Desktop/web/polar/store/tests",
+        "children": [
+          {
+            "type": "file",
+            "name": "action.test.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/tests/action.test.mjs"
+          },
+          {
+            "type": "file",
+            "name": "atom.test.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/tests/atom.test.mjs"
+          },
+          {
+            "type": "file",
+            "name": "atomDeep.test.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/tests/atomDeep.test.mjs"
+          },
+          {
+            "type": "file",
+            "name": "atomMap.test.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/tests/atomMap.test.mjs"
+          },
+          {
+            "type": "file",
+            "name": "computed.test.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/tests/computed.test.mjs"
+          },
+          {
+            "type": "file",
+            "name": "listenerQueue.test.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/tests/listenerQueue.test.mjs"
+          },
+          {
+            "type": "file",
+            "name": "path.test.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/tests/path.test.mjs"
+          },
+          {
+            "type": "file",
+            "name": "task.test.mjs",
+            "path": "/home/gary/Desktop/web/polar/store/tests/task.test.mjs"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "directory",
+    "name": "ui",
+    "path": "/home/gary/Desktop/web/polar/ui",
+    "children": [
+      {
+        "type": "directory",
+        "name": "example",
+        "path": "/home/gary/Desktop/web/polar/ui/example",
+        "children": [
+          {
+            "type": "file",
+            "name": "comp-listitem.js",
+            "path": "/home/gary/Desktop/web/polar/ui/example/comp-listitem.js"
+          },
+          {
+            "type": "file",
+            "name": "index.html",
+            "path": "/home/gary/Desktop/web/polar/ui/example/index.html"
+          },
+          {
+            "type": "file",
+            "name": "index.js",
+            "path": "/home/gary/Desktop/web/polar/ui/example/index.js"
+          },
+          {
+            "type": "file",
+            "name": "polar-store.js",
+            "path": "/home/gary/Desktop/web/polar/ui/example/polar-store.js"
+          },
+          {
+            "type": "file",
+            "name": "ui.js",
+            "path": "/home/gary/Desktop/web/polar/ui/example/ui.js"
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "index.js",
+        "path": "/home/gary/Desktop/web/polar/ui/index.js"
+      }
+    ]
+  }
+]
+
+    renderFileSystem(data)
+   
+  </script>
+</body>
+</html>
